@@ -19,8 +19,12 @@ public class ApplicationContext {
         List<Class<?>> componentClassList = scanPackage(packageName).
                 stream().
                 filter(aClass -> aClass.isAnnotationPresent(Component.class)).toList();
-
     }
+
+    protected boolean scanCreate(Class<?> type){
+        return type.isAnnotationPresent(Component.class);
+    }
+
 
     // 扫描指定包下的所有类，不一定是一种类型的类
     private List<Class<?>> scanPackage(String packageName) {
