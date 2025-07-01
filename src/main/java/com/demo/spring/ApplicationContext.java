@@ -62,9 +62,11 @@ public class ApplicationContext {
                 Path absolutePath = file.toAbsolutePath();
                 // 判断是否是class文件
                 if (absolutePath.toString().endsWith(".class")) {
-                    System.out.println(absolutePath);
                     // 既能拿到文件夹下的文件，也能拿到子文件夹下的文件
+                    System.out.println(absolutePath);
+
                     String replaceStr = absolutePath.toString().replace(File.separator, ".");
+                    // packageName首次出现的位置
                     int packageIndex = replaceStr.indexOf(packageName);
                     // 拿到全类名
                     String className = replaceStr.substring(packageIndex, replaceStr.length() - ".class".length());
@@ -75,12 +77,11 @@ public class ApplicationContext {
                     } catch (ClassNotFoundException e) {
                         throw new RuntimeException(e);
                     }
-
                 }
                 // 无论是否是class文件，都继续遍历
                 return FileVisitResult.CONTINUE;
             }
-        }); 
+        });
 
         // 拿到所有的类对象
         return classList;
