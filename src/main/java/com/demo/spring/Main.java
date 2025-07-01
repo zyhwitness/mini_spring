@@ -8,6 +8,8 @@ package com.demo.spring;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        new ApplicationContext("com.demo.spring");
+        ApplicationContext ioc = new ApplicationContext("com.demo.spring");
+        Object cat = ioc.getBean("cat");
+        System.out.println(cat);
     }
 }
