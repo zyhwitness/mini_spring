@@ -9,7 +9,7 @@ package com.demo.spring;
 public class Main {
     public static void main(String[] args) throws Exception {
         ApplicationContext ioc = new ApplicationContext("com.demo.spring");
-        Object cat = ioc.getBean("cat");
-        System.out.println(cat);
+        Object dog = ioc.getBean("myDog");
+        System.out.println(dog);
     }
 }

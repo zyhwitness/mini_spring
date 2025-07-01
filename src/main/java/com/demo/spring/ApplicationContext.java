@@ -26,6 +26,7 @@ public class ApplicationContext {
         initContext(packageName);
     }
 
+    // bean的容器, key是beanName, value是bean对象
     private Map<String, Object> ioc = new HashMap<>();
 
     public void initContext(String packageName) throws Exception {
@@ -108,17 +109,26 @@ public class ApplicationContext {
         return classList;
     }
 
+    // 根据beanName获取bean
     public Object getBean(String beanName) {
-        return null;
+        return this.ioc.get(beanName);
     }
 
+    // 根据beanType获取bean
     public <T> T getBean(Class<T> beanType) {
-        return null;
+        return this.ioc.values().stream()
+                .filter(bean -> beanType.isAssignableFrom(bean.getClass()))
+                .map(bean -> (T) bean)
+                .findAny()
+                .orElse(null);
     }
 
     // 获取同一种类型的bean集合
     public <T> List<T> getBeans(Class<T> beanType) {
-        return null;
+        return this.ioc.values().stream()
+                .filter(bean -> beanType.isAssignableFrom(bean.getClass()))
+                .map(bean -> (T) bean)
+                .toList();
     }
 
 }
