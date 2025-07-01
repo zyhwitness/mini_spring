@@ -2,6 +2,7 @@ package com.demo.spring;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -9,7 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Description: TODO
@@ -22,6 +25,8 @@ public class ApplicationContext {
     public ApplicationContext(String packageName) throws Exception {
         initContext(packageName);
     }
+
+    private Map<String, Object> ioc = new HashMap<>();
 
     public void initContext(String packageName) throws Exception {
         scanPackage(packageName).stream().filter(this::canCreate).map(this::wrapper).forEach(this::createBean);
@@ -46,6 +51,22 @@ public class ApplicationContext {
 
     // 通过BeanDefinition创建bean
     protected void createBean(BeanDefinition beanDefinition) {
+        String beanName = beanDefinition.getBeanName();
+        if (ioc.containsKey(beanName)) {
+            return;
+        }
+        doCreateBean(beanDefinition);
+    }
+
+    private void doCreateBean(BeanDefinition beanDefinition) {
+        Constructor<?> constructor = beanDefinition.getConstructor();
+        Object bean = null;
+        try {
+            bean = constructor.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        ioc.put(beanDefinition.getBeanName(), bean);
 
     }
 
