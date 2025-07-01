@@ -26,6 +26,8 @@ public class ApplicationContext {
         initContext(packageName);
     }
 
+    private Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
     // bean的容器, key是beanName, value是bean对象
     private Map<String, Object> ioc = new HashMap<>();
 
@@ -47,7 +49,12 @@ public class ApplicationContext {
 
     // 转换成BeanDefinition
     protected BeanDefinition wrapper(Class<?> type) {
-        return new BeanDefinition(type);
+        BeanDefinition beanDefinition = new BeanDefinition(type);
+        if (beanDefinitionMap.containsKey(beanDefinition.getBeanName())) {
+            throw new RuntimeException("beanName重复");
+        }
+        beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
+        return beanDefinition;
     }
 
     // 通过BeanDefinition创建bean
