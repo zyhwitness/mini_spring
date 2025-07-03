@@ -8,8 +8,9 @@ package com.demo.spring;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        ApplicationContext ioc = new ApplicationContext("com.demo.spring");
-        Object dog = ioc.getBean("myDog");
-        System.out.println(dog);
+//        ApplicationContext ioc = new ApplicationContext("com.demo.spring");
+//        Object dog = ioc.getBean("myDog");
+//        System.out.println(dog);
+        new ApplicationContext("com.demo.spring");
     }
 }
