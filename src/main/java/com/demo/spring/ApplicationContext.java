@@ -3,6 +3,7 @@ package com.demo.spring;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
@@ -27,15 +28,15 @@ public class ApplicationContext {
         initContext(packageName);
     }
 
-    private Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+    private final Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
     // bean的容器, key是beanName, value是bean对象
-    private Map<String, Object> ioc = new HashMap<>();
+    private final Map<String, Object> ioc = new HashMap<>();
 
     public void initContext(String packageName) throws Exception {
         scanPackage(packageName).stream().filter(this::canCreate).map(this::wrapper).forEach(this::createBean);
 //        List<BeanDefinition> list =
-//                scanPackage(packageName).stream().filter(this::scanCrea te).map(this::wrapper).toList();
+//                scanPackage(packageName).stream().filter(this::canCreate).map(this::wrapper).toList();
 
 //        ApplicationContext.class.getClassLoader().getResource("");
 //        List<Class<?>> componentClassList = scanPackage(packageName).
@@ -72,14 +73,22 @@ public class ApplicationContext {
         Object bean = null;
         try {
             bean = constructor.newInstance();
+            autowiredBean(bean, beanDefinition);
             Method postConstructMethod = beanDefinition.getPostConstructMethod();
-            if(postConstructMethod != null){
+            if (postConstructMethod != null) {
                 postConstructMethod.invoke(bean);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         ioc.put(beanDefinition.getBeanName(), bean);
+    }
+
+    private void autowiredBean(Object bean, BeanDefinition beanDefinition) {
+        for (Field autowiredField : beanDefinition.getAutowiredFields()) {
+            autowiredField.setAccessible(true);
+
+        }
 
     }
 
