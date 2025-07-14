@@ -35,8 +35,11 @@ public class ApplicationContext {
 
     private final Map<String, Object> loadingIoc = new HashMap<>();
 
+    private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
+
     public void initContext(String packageName) throws Exception {
         scanPackage(packageName).stream().filter(this::canCreate).forEach(this::wrapper);
+        initBeanPostProcessor();
         // 把所有的BeanDefinition加载后，再创建bean
         beanDefinitionMap.values().forEach(this::createBean);
 //        scanPackage(packageName).stream().filter(this::canCreate).map(this::wrapper).forEach(this::createBean);
@@ -47,6 +50,14 @@ public class ApplicationContext {
 //        List<Class<?>> componentClassList = scanPackage(packageName).
 //                stream().
 //                filter(aClass -> aClass.isAnnotationPresent(Component.class)).toList();
+    }
+
+    private void initBeanPostProcessor() {
+        beanDefinitionMap.values().stream()
+                .filter(beanDefinition -> BeanPostProcessor.class.isAssignableFrom(beanDefinition.getBeanType()))
+                .map(this::createBean)
+                .map(bean -> (BeanPostProcessor)bean)
+                .forEach(beanPostProcessors::add);
     }
 
     // 判断什么样的类可以创建bean
@@ -83,13 +94,28 @@ public class ApplicationContext {
             bean = constructor.newInstance();
             loadingIoc.put(beanDefinition.getBeanName(), bean);
             autowiredBean(bean, beanDefinition);
-            Method postConstructMethod = beanDefinition.getPostConstructMethod();
-            if (postConstructMethod != null) {
-                postConstructMethod.invoke(bean);
-            }
-            ioc.put(beanDefinition.getBeanName(), loadingIoc.remove(beanDefinition.getBeanName()));
+            bean = initializeBean(bean, beanDefinition);
+            loadingIoc.remove(beanDefinition.getBeanName());
+            ioc.put(beanDefinition.getBeanName(), bean);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+
+        return bean;
+    }
+
+    private Object initializeBean(Object bean, BeanDefinition beanDefinition) throws Exception {
+        for (BeanPostProcessor beanPostProcessor : beanPostProcessors) {
+            bean = beanPostProcessor.beforeInitialization(bean, beanDefinition.getBeanName());
+        }
+
+        Method postConstructMethod = beanDefinition.getPostConstructMethod();
+        if (postConstructMethod != null) {
+            postConstructMethod.invoke(bean);
+        }
+
+        for (BeanPostProcessor beanPostProcessor : beanPostProcessors) {
+            bean = beanPostProcessor.afterInitialization(bean, beanDefinition.getBeanName());
         }
 
         return bean;

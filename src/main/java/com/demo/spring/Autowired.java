@@ -1,4 +1,4 @@
-package com.demo.spring.sub;
+package com.demo.spring;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,8 +11,8 @@ import java.lang.annotation.Target;
  * @Date: 2025/7/2 16:54
  * @Version 1.0
  */
-@Target(ElementType.METHOD)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PostConstruct {
+public @interface Autowired {
 
 }

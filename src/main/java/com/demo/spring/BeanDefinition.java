@@ -1,8 +1,5 @@
 package com.demo.spring;
 
-import com.demo.spring.sub.Autowired;
-import com.demo.spring.sub.PostConstruct;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

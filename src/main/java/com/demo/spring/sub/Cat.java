@@ -1,6 +1,8 @@
 package com.demo.spring.sub;
 
+import com.demo.spring.Autowired;
 import com.demo.spring.Component;
+import com.demo.spring.PostConstruct;
 
 /**
  * @Description: TODO
