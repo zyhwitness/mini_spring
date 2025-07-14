@@ -25,7 +25,10 @@ public class BeanDefinition {
 
     private final List<Field> autowiredFields;
 
+    private final Class<?> beanType;
+
     public BeanDefinition(Class<?> type) {
+        this.beanType = type;
         Component component = type.getDeclaredAnnotation(Component.class);
         this.name = component.name().isEmpty() ? type.getSimpleName() : component.name();
         try {
@@ -59,5 +62,9 @@ public class BeanDefinition {
 
     public List<Field> getAutowiredFields() {
         return autowiredFields;
+    }
+
+    public Class<?> getBeanType() {
+        return beanType;
     }
 }

@@ -1,5 +1,7 @@
 package com.demo.spring;
 
+import com.demo.spring.sub.Dog;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -34,7 +36,10 @@ public class ApplicationContext {
     private final Map<String, Object> ioc = new HashMap<>();
 
     public void initContext(String packageName) throws Exception {
-        scanPackage(packageName).stream().filter(this::canCreate).map(this::wrapper).forEach(this::createBean);
+        scanPackage(packageName).stream().filter(this::canCreate).forEach(this::wrapper);
+        // 把所有的BeanDefinition加载后，再创建bean
+        beanDefinitionMap.values().forEach(this::createBean);
+//        scanPackage(packageName).stream().filter(this::canCreate).map(this::wrapper).forEach(this::createBean);
 //        List<BeanDefinition> list =
 //                scanPackage(packageName).stream().filter(this::canCreate).map(this::wrapper).toList();
 
@@ -60,15 +65,15 @@ public class ApplicationContext {
     }
 
     // 通过BeanDefinition创建bean
-    protected void createBean(BeanDefinition beanDefinition) {
+    protected Object createBean(BeanDefinition beanDefinition) {
         String beanName = beanDefinition.getBeanName();
         if (ioc.containsKey(beanName)) {
-            return;
+            return ioc.get(beanName);
         }
-        doCreateBean(beanDefinition);
+        return doCreateBean(beanDefinition);
     }
 
-    private void doCreateBean(BeanDefinition beanDefinition) {
+    private Object doCreateBean(BeanDefinition beanDefinition) {
         Constructor<?> constructor = beanDefinition.getConstructor();
         Object bean = null;
         try {
@@ -82,11 +87,14 @@ public class ApplicationContext {
             throw new RuntimeException(e);
         }
         ioc.put(beanDefinition.getBeanName(), bean);
+        return bean;
     }
 
     private void autowiredBean(Object bean, BeanDefinition beanDefinition) {
         for (Field autowiredField : beanDefinition.getAutowiredFields()) {
             autowiredField.setAccessible(true);
+            Object autowiredBean = null;
+            autowiredField.set(bean, getBean(Dog.class));
 
         }
 
@@ -132,24 +140,49 @@ public class ApplicationContext {
 
     // 根据beanName获取bean
     public Object getBean(String beanName) {
-        return this.ioc.get(beanName);
+        if (beanName == null) {
+            return null;
+        }
+        Object bean = this.ioc.get(beanName);
+        if (bean != null) {
+            return bean;
+        }
+        if (beanDefinitionMap.containsKey(beanName)) {
+            return createBean(beanDefinitionMap.get(beanName));
+        }
+        return null;
     }
 
     // 根据beanType获取bean
     public <T> T getBean(Class<T> beanType) {
-        return this.ioc.values().stream()
-                .filter(bean -> beanType.isAssignableFrom(bean.getClass()))
-                .map(bean -> (T) bean)
-                .findAny()
+        String beanName = this.beanDefinitionMap.values().stream()
+                .filter(beanDefinition -> beanType.isAssignableFrom(beanDefinition.getBeanType()))
+                .map(BeanDefinition::getBeanName)
+                .findFirst()
                 .orElse(null);
+
+        return (T) getBean(beanName);
+
+//        return this.ioc.values().stream()
+//                .filter(bean -> beanType.isAssignableFrom(bean.getClass()))
+//                .map(bean -> (T) bean)
+//                .findAny()
+//                .orElse(null);
     }
 
     // 获取同一种类型的bean集合
     public <T> List<T> getBeans(Class<T> beanType) {
-        return this.ioc.values().stream()
-                .filter(bean -> beanType.isAssignableFrom(bean.getClass()))
+        return this.beanDefinitionMap.values().stream()
+                .filter(beanDefinition -> beanType.isAssignableFrom(beanDefinition.getBeanType()))
+                .map(BeanDefinition::getBeanName)
+                .map(this::getBean)
                 .map(bean -> (T) bean)
                 .toList();
+
+//        return this.ioc.values().stream()
+//                .filter(bean -> beanType.isAssignableFrom(bean.getClass()))
+//                .map(bean -> (T) bean)
+//                .toList();
     }
 
 }
