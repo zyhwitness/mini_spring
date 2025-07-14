@@ -10,4 +10,17 @@ import com.demo.spring.Component;
  */
 @Component(name = "myDog")
 public class Dog {
+
+    @Autowired
+    private Cat cat;
+
+    @Autowired
+    private Dog dog;
+
+    @PostConstruct
+    public void init() {
+        System.out.println("Dog init" + cat);
+        System.out.println("Dog init" + dog);
+    }
+
 }

@@ -1,7 +1,5 @@
 package com.demo.spring;
 
-import com.demo.spring.sub.Dog;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -34,6 +32,8 @@ public class ApplicationContext {
 
     // bean的容器, key是beanName, value是bean对象
     private final Map<String, Object> ioc = new HashMap<>();
+
+    private final Map<String, Object> loadingIoc = new HashMap<>();
 
     public void initContext(String packageName) throws Exception {
         scanPackage(packageName).stream().filter(this::canCreate).forEach(this::wrapper);
@@ -70,6 +70,9 @@ public class ApplicationContext {
         if (ioc.containsKey(beanName)) {
             return ioc.get(beanName);
         }
+        if (loadingIoc.containsKey(beanName)) {
+            return loadingIoc.get(beanName);
+        }
         return doCreateBean(beanDefinition);
     }
 
@@ -78,26 +81,25 @@ public class ApplicationContext {
         Object bean = null;
         try {
             bean = constructor.newInstance();
+            loadingIoc.put(beanDefinition.getBeanName(), bean);
             autowiredBean(bean, beanDefinition);
             Method postConstructMethod = beanDefinition.getPostConstructMethod();
             if (postConstructMethod != null) {
                 postConstructMethod.invoke(bean);
             }
+            ioc.put(beanDefinition.getBeanName(), loadingIoc.remove(beanDefinition.getBeanName()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        ioc.put(beanDefinition.getBeanName(), bean);
+
         return bean;
     }
 
-    private void autowiredBean(Object bean, BeanDefinition beanDefinition) {
+    private void autowiredBean(Object bean, BeanDefinition beanDefinition) throws IllegalAccessException {
         for (Field autowiredField : beanDefinition.getAutowiredFields()) {
             autowiredField.setAccessible(true);
-            Object autowiredBean = null;
-            autowiredField.set(bean, getBean(Dog.class));
-
+            autowiredField.set(bean, getBean(autowiredField.getType()));
         }
-
     }
 
     // 扫描指定包下的所有类，不一定是一种类型的类
