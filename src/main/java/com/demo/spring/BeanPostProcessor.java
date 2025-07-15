@@ -13,7 +13,6 @@ public interface BeanPostProcessor {
         return bean;
     }
 
-
     // 在bean初始化后调用
     default Object afterInitialization(Object bean, String beanName){
         return bean;

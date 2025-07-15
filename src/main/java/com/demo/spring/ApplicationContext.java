@@ -56,7 +56,7 @@ public class ApplicationContext {
         beanDefinitionMap.values().stream()
                 .filter(beanDefinition -> BeanPostProcessor.class.isAssignableFrom(beanDefinition.getBeanType()))
                 .map(this::createBean)
-                .map(bean -> (BeanPostProcessor)bean)
+                .map(bean -> (BeanPostProcessor) bean)
                 .forEach(beanPostProcessors::add);
     }
 
